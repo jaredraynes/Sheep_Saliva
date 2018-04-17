@@ -1,4 +1,5 @@
 library(tidyverse)
+library(readxl)
 library(lmerTest)
 library(emmeans)
 library(FactoMineR)
@@ -18,7 +19,13 @@ colnames(peptide_T) <- peptide_T[1, ]
 peptide_T <- peptide_T[-1 ,]
 
 peptide_long <- gather(peptide_T, key = "peptide", value = peak.area, -ID, -Nutrition, -Treatment.Group)
+peptide_long$ID <- factor(peptide_long$ID)
+peptide_long$Treatment.Group <- factor(peptide_long$Treatment.Group)
+peptide_long$Nutrition <- factor(peptide_long$Nutrition)
+peptide_long$peptide <- factor(peptide_long$peptide)
 
-ggplot(data = peptide_long, aes(x=Treatment.Group, y = peak.area, colour = peptide)) +
-  geom_point()
+select1 <- filter(peptide_long, Treatment.Group == 1:2)
+
+ggplot(data = select1, aes(x=Treatment.Group, y = peak.area)) +
+  geom_boxplot()
 
