@@ -117,3 +117,6 @@ ggplot(Weight_gain_long, aes(x = Week, y = Weight.kg, colour = Treatment.Group))
 ## treatments no difference at birth, restricted feed lowers weight,
 ## stress lowers weight
 
+
+
+
