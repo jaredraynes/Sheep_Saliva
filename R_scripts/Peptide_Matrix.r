@@ -23,8 +23,22 @@ peptide_long$ID <- factor(peptide_long$ID)
 peptide_long$Treatment.Group <- factor(peptide_long$Treatment.Group)
 peptide_long$Nutrition <- factor(peptide_long$Nutrition)
 peptide_long$peptide <- factor(peptide_long$peptide)
+peptide_long$peak.area <- as.numeric(peptide_long$peak.area)
 
 select1 <- filter(peptide_long, Treatment.Group == 1:2)
+
+## try a PCA
+
+
+#### need to convert all to numbers as currently chars *****
+peptide_T[4:2114] <- as.numeric(peptide_T[4:2114])
+
+
+pep.PCA <- PCA(peptide_long,quanti.sup = 1:4, quali.sup = 5)
+
+
+
+##Too big to plot
 
 ggplot(data = select1, aes(x=Treatment.Group, y = peak.area)) +
   geom_boxplot()
