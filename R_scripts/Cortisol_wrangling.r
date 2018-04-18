@@ -43,3 +43,10 @@ summary(lm2)
 lm3 <- lm(`Cortisol_nmol/L` ~Treatment.Group+Time.point, data = Cortisol_long)
 anova(lm3)
 summary(lm3)
+
+lmer1 <- lmer(`Cortisol_nmol/L` ~ Treatment.Group*Time.point + (1|Feed) + (1|Stress), data = Cortisol_long)
+anova(lmer1)
+summary(lmer1)
+
+emmeans(lm2, pairwise~Treatment.Group|Time.point)
+plot(lmer1, which=1)
