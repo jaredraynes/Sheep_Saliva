@@ -15,10 +15,14 @@ Glycogen_biopsy_long <- Glycogen_biopsy %>%
 names(Glycogen_biopsy_long) <- c("ID", "Treatment.Group", "Measure", "mg/g")
 Glycogen_biopsy_long$Treatment.Group <- factor(Glycogen_biopsy_long$Treatment.Group)
 Glycogen_biopsy_long$ID <- factor(Glycogen_biopsy_long$ID)
-
+Glycogen_biopsy_long$Measure <- factor(Glycogen_biopsy_long$Measure)
+Glycogen_biopsy_sel <- filter(Glycogen_biopsy_long, Measure == "Corrected Glycogen")
+head(Glycogen_biopsy_long)
 #Glycogen_ Biopsy initial look
 
-ggplot(Glycogen_biopsy_long, aes(x = Treatment.Group, y = `mg/g`, colour = Measure))+
+ggplot(Glycogen_biopsy_sel, aes(x = Treatment.Group, y = `mg/g`))+
   geom_boxplot() 
 
 ##stress causes lower amount of glycogen 
+
+lm.Glybiops1 <- lm(`mg/g` ~ Treatment.Group, data = Glycogen_biopsy_sel)
