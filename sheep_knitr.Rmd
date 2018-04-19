@@ -7,6 +7,11 @@ output:
     keep_md: true
 ---
 
+<style>
+body {
+text-align: justify}
+</style>
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
@@ -15,15 +20,86 @@ library(lmerTest)
 library(emmeans)
 ```
 
-## R Markdown
+## Background
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+Background and data provided by Dr Michelle Colgrave
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+Dark cutting is a notoriously difficult trait to assess. In this trial we proposed to assess dark cutting by a combination of muscle glycogen content and pH 24 hours post-slaughter. We also performed quantitative proteomics analysis on the saliva taken from sheep under different conditions of nutrition.
 
-```{r cars}
-summary(cars)
+### Experimental design
+
+Sixty wethers (castrated males) of around 1 month of age were brought to the Animal House, and allocated into 4 groups (n=15 per group) balanced by weight. Groups 1 and 2 were allocated to High Nutrition treatment, while groups 3 and 4 were allocated to Low Nutrition treatment. The trial had four treatment groups (2 x 2 factorial design): 
+1)	ad lib feed; no stress
+2)	ad lib feed: stress*
+3)	restricted feed (sloping 70 – 60 % of maintenance); no stress
+4)	restricted feed; stress*
+Note: the stress event occurred after the saliva was taken and as such should not impact these results.
+
+The sheep were assessed for glycogen content and the pH of the meat was measured 24h after slaughter.
+
+The pH was assessed after 24 h at 4 degress (final pH). A final pH > 5.7 is considered a cause for downgrading in Meat Standards Australia, and seen as indicative of ‘dark cutting’. Note that pH in the leg muscle and in the back muscle are quite different. The leg muscle (M. semitendinosus) is particularly sensitive to glycogen depletion.
+
+### Data provided
+
+The data was provided in the form of two Microsoft Excel documents.  
+1. "Copy of 20180413_DataSchool_Glycogen.xlsx"  
+2. "Copy of Data Matrix_Peptide Peak Area.xlsx"
+
+#### Initial investigation of excel 1
+
+```{r sheep}
+excel_sheets("Data/Copy of 20180413_DataSchool_Glycogen.xlsx")
 ```
+
+Contains 5 sheets within the Excel document
+
+## pH Data
+
+###Inital look at data
+```{r pH}
+pH <- read_xlsx("Data/Copy of 20180413_DataSchool_Glycogen.xlsx", sheet = "pH")
+head(pH)
+```
+####Tidying the data
+
+```{r pH_tidying}
+pH$Brand[13] = 64 #replacing data from sheep 13 with 64
+pH <- pH[1:4]
+names(pH) <- c("Treatment.Group", "ID", "M.semitendinosus", "M.longissimus.dorsi")
+pH <- mutate(pH, Feed = ifelse(Treatment.Group <= 2, TRUE, FALSE)) %>%  #added feed column
+  mutate(Stress = ifelse(Treatment.Group == 2|Treatment.Group == 4, TRUE, FALSE))
+pH_long <- pH %>% 
+  gather(key = "Muscle.type", value = "pH", "M.semitendinosus", "M.longissimus.dorsi")
+
+pH_long$Treatment.Group <- factor(pH$Treatment.Group)
+pH_long$ID <- factor(pH$ID)
+pH_long$Feed <- factor(pH_long$Feed)
+pH_long$Stress <- factor(pH_long$Stress)
+head(pH_long)
+```
+
+### Initial visulisation of data
+
+```{r pH_plot1, echo=FALSE}
+ggplot(pH_long, aes(x = Treatment.Group, y = pH, colour = Muscle.type))+
+  geom_boxplot()+
+  labs(x = "Treatment Group", y = "pH") +
+  theme(axis.title.y = element_text(size = rel(1.6), angle = 90)) +
+  theme(axis.title.x = element_text(size = rel(1.6), angle = 00))
+```
+
+### Modelling of data
+
+```{r pH_modelling}
+lm.pH4 <- lm(pH ~ Stress*Feed + Muscle.type, data = pH_long)
+summary(lm.pH4)
+```
+
+### Modelling Results
+1. Feeding regime had no influence on muscle pH.  
+2. Stress had a significant (P < 2e-16) impact on muscle pH.  
+3. The M.semitendinosus muscle had a significantly (P = 1.91e-12) higher pH.  
+4. 
 
 ## Including Plots
 
