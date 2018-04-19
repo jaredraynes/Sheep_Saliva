@@ -18,12 +18,14 @@ Cortisol_long <- Cortisol %>%
 Cortisol_long$Treatment.Group <- factor(Cortisol_long$Treatment.Group)
 Cortisol_long$ID <- factor(Cortisol_long$ID)
 Cortisol_long$Time.point <- factor(Cortisol_long$Time.point)
-
+Cortisol_long$Feed <- factor(Cortisol_long$Feed)
+Cortisol_long$Stress <- factor(Cortisol_long$Stress)
+Cortisol_long$Feed <- relevel(Cortisol_long$Feed, ref= 'TRUE')
 
 #Cortisol initial look
 
-ggplot(Cortisol_long, aes(x = Treatment.Group, y = `Cortisol_nmol/L`, colour = Time.point, shape = Stress))+
-  geom_jitter()
+ggplot(Cortisol_long, aes(x = Treatment.Group, y = `Cortisol_nmol/L`, colour = Time.point))+
+  geom_boxplot() +
   scale_y_log10()
 
 ##highest cortisol after kill(time.point3), drop in cortisol after stress
@@ -48,5 +50,5 @@ lmer1 <- lmer(`Cortisol_nmol/L` ~ Treatment.Group*Time.point + (1|Feed) + (1|Str
 anova(lmer1)
 summary(lmer1)
 
-emmeans(lm2, pairwise~Treatment.Group|Time.point)
+emmeans(lm2, ~Treatment.Group)
 plot(lmer1, which=1)
