@@ -18,6 +18,7 @@ library(tidyverse)
 library(readxl)
 library(lmerTest)
 library(emmeans)
+library(factoextra)
 ```
 
 ## Background
@@ -28,11 +29,12 @@ Dark cutting is a notoriously difficult trait to assess. In this trial we propos
 
 ### Experimental design
 
-Sixty wethers (castrated males) of around 1 month of age were brought to the Animal House, and allocated into 4 groups (n=15 per group) balanced by weight. Groups 1 and 2 were allocated to High Nutrition treatment, while groups 3 and 4 were allocated to Low Nutrition treatment. The trial had four treatment groups (2 x 2 factorial design): 
-1)	ad lib feed; no stress
-2)	ad lib feed: stress*
-3)	restricted feed (sloping 70 – 60 % of maintenance); no stress
-4)	restricted feed; stress*
+Sixty wethers (castrated males) of around 1 month of age were brought to the Animal House, and allocated into 4 groups (n=15 per group) balanced by weight. Groups 1 and 2 were allocated to High Nutrition treatment, while groups 3 and 4 were allocated to Low Nutrition treatment. The trial had four treatment groups (2 x 2 factorial design):   
+1)	ad lib feed; no stress  
+2)	ad lib feed: stress*  
+3)	restricted feed (sloping 70 – 60 % of maintenance); no stress  
+4)	restricted feed; stress* 
+
 Note: the stress event occurred after the saliva was taken and as such should not impact these results.
 
 The sheep were assessed for glycogen content and the pH of the meat was measured 24h after slaughter.
@@ -85,6 +87,13 @@ ggplot(pH_long, aes(x = Treatment.Group, y = pH, colour = Muscle.type))+
   labs(x = "Treatment Group", y = "pH") +
   theme(axis.title.y = element_text(size = rel(1.6), angle = 90)) +
   theme(axis.title.x = element_text(size = rel(1.6), angle = 00))
+
+ggplot(pH_long, aes(x = Stress, y = pH, colour = Feed))+
+  geom_jitter() +
+  facet_wrap(~Muscle.type) +
+  labs(x = "Stress", y = "pH") +
+  theme(axis.title.y = element_text(size = rel(1.6), angle = 90)) +
+  theme(axis.title.x = element_text(size = rel(1.6), angle = 00))
 ```
 
 #### Modelling of data
@@ -117,9 +126,12 @@ G2 <- Glycogen[6:10] #need to have identical names to use row_bind
 names(G2) <- c("Treatment group", "Brand", "Glycogen mg/g tissue", "Lactate mg/g", "Corrected glycogen")
 G2$`Treatment group` <- as.character(G2$`Treatment group`) 
 Glycogen_comb <- bind_rows(G1, G2) #combining the columns together
+#names(Glycogen_comb) <- c("Treatment.Group", "ID", "Glycogen mg/g tissue", "Lactate mg/g", "Corrected glycogen")
+Glycogen_comb <- mutate(Glycogen_comb, Feed = ifelse(`Treatment group` <= 2, TRUE, FALSE)) %>%  #added feed column
+  mutate(Stress = ifelse(`Treatment group` == 2|`Treatment group` == 4, TRUE, FALSE))
 Glycogen_long <- Glycogen_comb %>% 
   gather(key = "Measure", value = "mg/g", "Glycogen mg/g tissue", "Lactate mg/g", "Corrected glycogen")
-names(Glycogen_long) <- c("Treatment.Group", "ID", "Measure", "mg/g")
+names(Glycogen_long) <- c("Treatment.Group", "ID", "Feed", "Stress", "Measure", "mg/g")
 Glycogen_long$Treatment.Group <- factor(Glycogen_long$Treatment.Group)
 Glycogen_long$ID <- factor(Glycogen_long$ID)
 Glycogen_sel <- filter(Glycogen_long, Measure == "Corrected glycogen")
@@ -132,6 +144,13 @@ head(Glycogen_long)
 ggplot(Glycogen_long, aes(x = Treatment.Group, y = `mg/g`, colour = Measure))+
   geom_boxplot()+
   labs(x = "Treatment Group", y = "Glycogen mg/g") +
+  theme(axis.title.y = element_text(size = rel(1.6), angle = 90)) +
+  theme(axis.title.x = element_text(size = rel(1.6), angle = 00))
+
+ggplot(Glycogen_sel, aes(x = Stress, y = `mg/g`, colour = Feed))+
+  geom_jitter()+
+  ggtitle("Corrected Glycogen") +
+  labs(x = "Stress", y = "Glycogen mg/g") +
   theme(axis.title.y = element_text(size = rel(1.6), angle = 90)) +
   theme(axis.title.x = element_text(size = rel(1.6), angle = 00))
 ```
@@ -176,8 +195,8 @@ head(Glycogen_biopsy_long)
 #### Initial visulisation of data
 
 ```{r Glygogen_Biops_plot1, echo=FALSE}
-ggplot(Glycogen_biopsy_long, aes(x = Treatment.Group, y = `mg/g`, colour = Measure))+
-  geom_point(alpha = 0.5)+
+ggplot(Glycogen_biopsy_sel, aes(x = Treatment.Group, y = `mg/g`, colour = Measure))+
+  geom_point()+
   labs(x = "Treatment Group", y = "Glycogen mg/g") +
   theme(axis.title.y = element_text(size = rel(1.6), angle = 90)) +
   theme(axis.title.x = element_text(size = rel(1.6), angle = 00))
@@ -192,7 +211,7 @@ plot(lm.Gly1, which =1)
 ```
 
 #### Modelling Results
-1. Stress causes a significant (P = 0.0046) increase in M.semimembranosus muscle glycogen levels.
+1. Stress caused a significant (P = 0.0046) increase in M.semimembranosus muscle glycogen levels.
 
 ## Weight Gain Data
 
@@ -224,19 +243,21 @@ head(Weight_gain_long)
 #### Initial visulisation of data
 
 ```{r Weight_plot1, echo=FALSE}
-ggplot(Weight_gain_long, aes(x = Week, y = Weight.kg, colour = Treatment.Group))+
-  geom_point(alpha = 0.5)+
+ggplot(Weight_gain_long, aes(x = Week, y = Weight.kg, colour = Stress))+
+  geom_boxplot()+
+  facet_wrap(~Feed) +
+  ggtitle("Feed") +
   labs(x = "Week", y = "Weight kg") +
   theme(axis.title.y = element_text(size = rel(1.6), angle = 90)) +
   theme(axis.title.x = element_text(size = rel(1.6), angle = 00))
 ```
 
-#### Modelling of data (only corrected glycogen)
+#### Modelling of data
 
 ```{r Weight_modelling}
 lm.Weight1 <- lm(Weight.kg ~ Week + Stress*Feed, data = Weight_gain_long)
 summary(lm.Weight1)
-emmeans(lm.Weight1, pairwise ~ Week + Stress*Feed)
+#emmeans(lm.Weight1, pairwise ~ Week + Stress*Feed)
 plot(lm.Gly1, which =1)
 ```
 
@@ -246,3 +267,37 @@ plot(lm.Gly1, which =1)
 3. By week 2 all treatments have lost a statistically significant (P = 0.0412) amount of weight compared to the previous weeks. Again, Treatment group 4 has lost statistically significantly (P = 0.0130) more weight in week 2 than the other groups.  
 4. By week 3 treatment groups 1 and 2 have gained a statistically significant amount of weight compared to treatment groups 3 and 4, but between groups 1 and 2, and 3 and 4 there is no significant difference.  
 5. By week 4 the trends are the same as week 3.
+
+## Peptide Matrix Data
+
+####Data are the peak areas of identified peptides
+
+```{r peptide}
+peptide <- read_xlsx("Data/Copy of Data Matrix_Peptide Peak Area.xlsx")
+glimpse(peptide)
+```
+
+####Tidy the data
+
+```{r peptide_T}
+peptide_T <- t(peptide) #transpose
+peptide_T <- rownames_to_column(data.frame(peptide_T), 'ID')
+peptide_T$ID[1] <- "ID"
+peptide_T[] <- lapply(peptide_T, as.character)
+peptide_T$X2[1] <- "Nutrition"
+peptide_T$X1[1] <- "Treatment.Group"
+colnames(peptide_T) <- peptide_T[1, ]
+peptide_T <- peptide_T[-1 ,]
+peptide_T[4:2117] <- lapply(peptide_T[4:2117], as.numeric)
+peptide_T[1:3] <- lapply(peptide_T[1:3], as.factor)
+peptide_T <- mutate(peptide_T, Stress = ifelse(Treatment.Group == 2|Treatment.Group == 4, TRUE, FALSE))
+peptide_T <- select(peptide_T, Stress, everything())
+peptide_T$Stress <- factor(peptide_T$Stress)
+```
+
+####Principle Component Analysis of the Data
+
+```{r PCA}
+pca1 <- prcomp(na.omit(peptide_T[5:2114]), scale=TRUE)
+summary(pca1)
+```
