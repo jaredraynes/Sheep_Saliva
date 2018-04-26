@@ -77,7 +77,10 @@ fviz_pca_ind(pca1,
 
 ###Nutrition
 fviz_pca_ind(pca1, 
-             habillage = peptide_T[1:48, 4], addEllipses = TRUE, ellipse.level = 0.68) +
+             habillage = peptide_T[1:48, 4], addEllipses = TRUE, 
+             ellipse.level = 0.68, 
+             title = "Saliva Peptide Analysis",
+             repel = TRUE)+
   theme_minimal()
 
 

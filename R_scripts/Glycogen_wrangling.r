@@ -12,6 +12,12 @@ G2 <- Glycogen[6:10] #need to have identical names to use row_bind
 names(G2) <- c("Treatment group", "Brand", "Glycogen mg/g tissue", "Lactate mg/g", "Corrected glycogen")
 G2$`Treatment group` <- as.character(G2$`Treatment group`) 
 Glycogen_comb <- bind_rows(G1, G2) #combining the columns together
+names(Glycogen_comb) <- c("Treatment.Group", "ID", "Glycogen mg/g tissue", "Lactate mg/g", "Corrected glycogen")
+Glycogen_comb <- mutate(Glycogen_comb, Feed = ifelse(Treatment.Group <= 2, TRUE, FALSE)) %>%  #added feed column
+  mutate(Stress = ifelse(Treatment.Group == 2|Treatment.Group == 4, TRUE, FALSE))
+
+
+
 Glycogen_long <- Glycogen_comb %>% 
   gather(key = "Measure", value = "mg/g", "Glycogen mg/g tissue", "Lactate mg/g", "Corrected glycogen")
 names(Glycogen_long) <- c("Treatment.Group", "ID", "Measure", "mg/g")
