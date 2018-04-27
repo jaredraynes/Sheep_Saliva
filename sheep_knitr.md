@@ -16,6 +16,8 @@ text-align: justify}
 
 ## Background
 
+R scripts and markdown documents can be found at <https://github.com/jaredraynes/Sheep_Saliva>
+
 Background and data provided by Dr Michelle Colgrave
 
 Dark cutting is a notoriously difficult trait to assess. In this trial we proposed to assess dark cutting by a combination of muscle glycogen content and pH 24 hours post-slaughter. We also performed quantitative proteomics analysis on the saliva taken from sheep under different conditions of nutrition.
