@@ -552,6 +552,142 @@ plot(lm.Weight1, which =1)
 4. By week 3 treatment groups 1 and 2 have gained a statistically significant amount of weight compared to treatment groups 3 and 4, but between groups 1 and 2, and 3 and 4 there is no significant difference.  
 5. By week 4 the trends are the same as week 3.
 
+## Cortisol Data
+
+####Inital look at data
+
+```r
+Cortisol <- read_xlsx("Data/Copy of 20180413_DataSchool_Glycogen.xlsx", sheet = "Cortisol")
+Cortisol
+```
+
+```
+## # A tibble: 61 x 15
+##    `Treatment group` Brand `Timepoint 1 before st~ `timepoint 2 after str~
+##                <dbl> <dbl>                   <dbl>                   <dbl>
+##  1                1.    1.                   5.47                    2.75 
+##  2                1.    2.                   9.00                    3.62 
+##  3                1.    5.                  16.6                    14.0  
+##  4                1.    6.                   0.308                   0.131
+##  5                1.    7.                   7.58                    3.69 
+##  6                1.    8.                  13.0                     5.98 
+##  7                1.    9.                  48.4                     0.282
+##  8                1.   10.                  36.7                     1.18 
+##  9                1.   11.                  29.2                    45.9  
+## 10                1.   12.                  14.6                     0.   
+## # ... with 51 more rows, and 11 more variables: `timepoint 3 immediately
+## #   after kill` <dbl>, X__1 <chr>, `note cortisol in nmol/L` <lgl>,
+## #   X__2 <lgl>, X__3 <lgl>, X__4 <lgl>, `group average` <chr>, tp1 <dbl>,
+## #   tp2 <dbl>, tp3 <dbl>, X__5 <chr>
+```
+
+####Tidying the data
+
+
+```r
+Cortisol <- Cortisol[1:5] #removing all columns that aren't needed
+names(Cortisol) <- c("Treatment.Group", "ID", "1", "2", "3")
+Cortisol <- Cortisol[-c(13),] #removing datapoint 15 as was replaced by 64
+Cortisol <- mutate(Cortisol, Feed = ifelse(Treatment.Group <= 2, TRUE, FALSE)) %>%  #added feed column
+  mutate(Stress = ifelse(Treatment.Group == 2|Treatment.Group == 4, TRUE, FALSE))
+Cortisol_long <- Cortisol %>% 
+  gather(key = "Time.point", value = "Cortisol_nmol/L", "1", "2", "3")
+Cortisol_long$Treatment.Group <- factor(Cortisol_long$Treatment.Group)
+Cortisol_long$ID <- factor(Cortisol_long$ID)
+Cortisol_long$Time.point <- factor(Cortisol_long$Time.point)
+Cortisol_long$Feed <- factor(Cortisol_long$Feed)
+Cortisol_long$Stress <- factor(Cortisol_long$Stress)
+Cortisol_long$Feed <- relevel(Cortisol_long$Feed, ref= 'TRUE')
+```
+
+#### Initial visulisation of data
+
+
+```
+## Warning: Transformation introduced infinite values in continuous y-axis
+```
+
+```
+## Warning: Removed 7 rows containing non-finite values (stat_boxplot).
+```
+
+![](sheep_knitr_files/figure-html/Cortisol_plot1-1.png)<!-- -->
+
+#### Modelling of data
+
+
+```r
+lm_cort <- lm(`Cortisol_nmol/L` ~Feed*Stress*Time.point, data = Cortisol_long)
+anova(lm_cort)
+```
+
+```
+## Analysis of Variance Table
+## 
+## Response: Cortisol_nmol/L
+##                         Df Sum Sq Mean Sq  F value    Pr(>F)    
+## Feed                     1   4280    4280   7.2318 0.0078844 ** 
+## Stress                   1    877     877   1.4820 0.2251763    
+## Time.point               2 134697   67349 113.7954 < 2.2e-16 ***
+## Feed:Stress              1     28      28   0.0472 0.8283032    
+## Feed:Time.point          2   9091    4545   7.6799 0.0006434 ***
+## Stress:Time.point        2   7798    3899   6.5881 0.0017599 ** 
+## Feed:Stress:Time.point   2     80      40   0.0673 0.9349485    
+## Residuals              168  99429     592                       
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+```
+
+```r
+summary(lm_cort)
+```
+
+```
+## 
+## Call:
+## lm(formula = `Cortisol_nmol/L` ~ Feed * Stress * Time.point, 
+##     data = Cortisol_long)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -69.044  -7.242  -3.320   6.104 118.120 
+## 
+## Coefficients:
+##                                  Estimate Std. Error t value Pr(>|t|)    
+## (Intercept)                        18.967      6.281   3.020  0.00293 ** 
+## FeedFALSE                          -2.569      8.883  -0.289  0.77276    
+## StressTRUE                        -11.700      8.883  -1.317  0.18959    
+## Time.point2                       -12.181      8.883  -1.371  0.17215    
+## Time.point3                        52.235      8.883   5.880 2.16e-08 ***
+## FeedFALSE:StressTRUE                4.900     12.563   0.390  0.69702    
+## FeedFALSE:Time.point2               2.558     12.563   0.204  0.83890    
+## FeedFALSE:Time.point3             -26.471     12.563  -2.107  0.03659 *  
+## StressTRUE:Time.point2             11.278     12.563   0.898  0.37060    
+## StressTRUE:Time.point3             34.704     12.563   2.762  0.00638 ** 
+## FeedFALSE:StressTRUE:Time.point2   -3.459     17.766  -0.195  0.84587    
+## FeedFALSE:StressTRUE:Time.point3   -6.514     17.766  -0.367  0.71437    
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 24.33 on 168 degrees of freedom
+## Multiple R-squared:  0.612,	Adjusted R-squared:  0.5866 
+## F-statistic: 24.09 on 11 and 168 DF,  p-value: < 2.2e-16
+```
+
+```r
+plot(lm_cort, which =1)
+```
+
+![](sheep_knitr_files/figure-html/Cortisol_modelling-1.png)<!-- -->
+
+#### Modelling Results
+
+1. At time point 1, before the stress event, feed made no difference to the concentration of cortisol, but the non-stressed groups (1 & 3), contained a significantly (P = 0.003) higher cortisol concentration. This is strange because no stress event had occurred.  
+2. There were no differences between treatment groups at time point after the stress event, therefore feed and stress makes no differnece to cortisol levels.  
+3. Cortisol levels were significantly differnet at timepoint 3, post killing for all treatment groups.  
+4. Restricted feed significantly (P = 0.004) lowered cortisol levels post killing.  
+5. Stress significantly (P = 0.006) increased cortisol levels post killing.
+
 ## Peptide Matrix Data
 
 ####Data are the peak areas of identified peptides
