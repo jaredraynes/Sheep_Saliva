@@ -92,17 +92,14 @@ pH <- mutate(pH, Feed = ifelse(Treatment.Group <= 2, TRUE, FALSE)) %>%  #added f
   mutate(Stress = ifelse(Treatment.Group == 2|Treatment.Group == 4, TRUE, FALSE))
 pH_long <- pH %>% 
   gather(key = "Muscle.type", value = "pH", "M.semitendinosus", "M.longissimus.dorsi")
-pH_long$Treatment.Group <- factor(pH$Treatment.Group)
-pH_long$ID <- factor(pH$ID)
-pH_long$Feed <- factor(pH_long$Feed)
-pH_long$Stress <- factor(pH_long$Stress)
+pH_long[1:5] <- lapply(pH_long[1:5], as.factor)
 pH_long
 ```
 
 ```
 ## # A tibble: 120 x 6
 ##    Treatment.Group ID    Feed  Stress Muscle.type         pH
-##    <fct>           <fct> <fct> <fct>  <chr>            <dbl>
+##    <fct>           <fct> <fct> <fct>  <fct>            <dbl>
 ##  1 1               1     TRUE  FALSE  M.semitendinosus  5.34
 ##  2 1               2     TRUE  FALSE  M.semitendinosus  5.33
 ##  3 1               5     TRUE  FALSE  M.semitendinosus  5.42
@@ -234,8 +231,7 @@ Glycogen_comb <- mutate(Glycogen_comb, Feed = ifelse(`Treatment group` <= 2, TRU
 Glycogen_long <- Glycogen_comb %>% 
   gather(key = "Measure", value = "mg/g", "Glycogen mg/g tissue", "Lactate mg/g", "Corrected glycogen")
 names(Glycogen_long) <- c("Treatment.Group", "ID", "Feed", "Stress", "Measure", "mg/g")
-Glycogen_long$Treatment.Group <- factor(Glycogen_long$Treatment.Group)
-Glycogen_long$ID <- factor(Glycogen_long$ID)
+Glycogen_long[1:5] <- lapply(Glycogen_long[1:5], as.factor)
 Glycogen_sel <- filter(Glycogen_long, Measure == "Corrected glycogen")
 Glycogen_long
 ```
@@ -243,7 +239,7 @@ Glycogen_long
 ```
 ## # A tibble: 180 x 6
 ##    Treatment.Group ID    Feed  Stress Measure              `mg/g`
-##    <fct>           <fct> <lgl> <lgl>  <chr>                 <dbl>
+##    <fct>           <fct> <fct> <fct>  <fct>                 <dbl>
 ##  1 1               1     TRUE  FALSE  Glycogen mg/g tissue   9.44
 ##  2 1               2     TRUE  FALSE  Glycogen mg/g tissue   6.91
 ##  3 1               5     TRUE  FALSE  Glycogen mg/g tissue   1.26
@@ -369,9 +365,7 @@ Glycogen_biopsy$Treatment.Group <- c(1,1,1,1,1,2,2,2,2,2,2)
 Glycogen_biopsy_long <- Glycogen_biopsy %>% 
   gather(key = "Measure", value = "mg/g", "Glycogen mg/g", "Lactate mg/g", "Corrected Glycogen")
 names(Glycogen_biopsy_long) <- c("ID", "Treatment.Group", "Measure", "mg/g")
-Glycogen_biopsy_long$Treatment.Group <- factor(Glycogen_biopsy_long$Treatment.Group)
-Glycogen_biopsy_long$ID <- factor(Glycogen_biopsy_long$ID)
-Glycogen_biopsy_long$Measure <- factor(Glycogen_biopsy_long$Measure)
+Glycogen_biopsy_long[1:3] <- lapply(Glycogen_biopsy_long[1:3], as.factor)
 Glycogen_biopsy_sel <- filter(Glycogen_biopsy_long, Measure == "Corrected Glycogen")
 Glycogen_biopsy_long
 ```
@@ -472,11 +466,7 @@ Weight_gain <- mutate(Weight_gain, Feed = ifelse(Treatment.Group <= 2, TRUE, FAL
   mutate(Stress = ifelse(Treatment.Group == 2|Treatment.Group == 4, TRUE, FALSE))
 Weight_gain_long <- Weight_gain %>% 
   gather(key = "Week", value = "Weight.kg", "-1", "0", "1", "2", "3", "4")
-Weight_gain_long$Treatment.Group <- factor(Weight_gain_long$Treatment.Group)
-Weight_gain_long$ID <- factor(Weight_gain_long$ID)
-Weight_gain_long$Week <- factor(Weight_gain_long$Week)
-Weight_gain_long$Feed <- factor(Weight_gain_long$Feed)
-Weight_gain_long$Stress <- factor(Weight_gain_long$Stress)
+Weight_gain_long[1:5] <- lapply(Weight_gain_long[1:5], as.factor)
 Weight_gain_long$Feed <- relevel(Weight_gain_long$Feed, ref= 'TRUE')
 Weight_gain_long
 ```
@@ -592,12 +582,26 @@ Cortisol <- mutate(Cortisol, Feed = ifelse(Treatment.Group <= 2, TRUE, FALSE)) %
   mutate(Stress = ifelse(Treatment.Group == 2|Treatment.Group == 4, TRUE, FALSE))
 Cortisol_long <- Cortisol %>% 
   gather(key = "Time.point", value = "Cortisol_nmol/L", "1", "2", "3")
-Cortisol_long$Treatment.Group <- factor(Cortisol_long$Treatment.Group)
-Cortisol_long$ID <- factor(Cortisol_long$ID)
-Cortisol_long$Time.point <- factor(Cortisol_long$Time.point)
-Cortisol_long$Feed <- factor(Cortisol_long$Feed)
-Cortisol_long$Stress <- factor(Cortisol_long$Stress)
+Cortisol_long[1:5] <- lapply(Cortisol_long[1:5], as.factor)
 Cortisol_long$Feed <- relevel(Cortisol_long$Feed, ref= 'TRUE')
+Cortisol_long
+```
+
+```
+## # A tibble: 180 x 6
+##    Treatment.Group ID    Feed  Stress Time.point `Cortisol_nmol/L`
+##    <fct>           <fct> <fct> <fct>  <fct>                  <dbl>
+##  1 1               1     TRUE  FALSE  1                      5.47 
+##  2 1               2     TRUE  FALSE  1                      9.00 
+##  3 1               5     TRUE  FALSE  1                     16.6  
+##  4 1               6     TRUE  FALSE  1                      0.308
+##  5 1               7     TRUE  FALSE  1                      7.58 
+##  6 1               8     TRUE  FALSE  1                     13.0  
+##  7 1               9     TRUE  FALSE  1                     48.4  
+##  8 1               10    TRUE  FALSE  1                     36.7  
+##  9 1               11    TRUE  FALSE  1                     29.2  
+## 10 1               12    TRUE  FALSE  1                     14.6  
+## # ... with 170 more rows
 ```
 
 #### Initial visulisation of data
