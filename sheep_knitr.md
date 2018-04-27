@@ -83,7 +83,7 @@ pH
 
 
 ```r
-pH$Brand[13] = 64 #replacing data from sheep 13 with 64
+pH$Brand[13] = 64 #replacing data from sheep 15 with 64
 pH <- pH[1:4]
 names(pH) <- c("Treatment.Group", "ID", "M.semitendinosus", "M.longissimus.dorsi")
 pH <- mutate(pH, Feed = ifelse(Treatment.Group <= 2, TRUE, FALSE)) %>%  #added feed column
