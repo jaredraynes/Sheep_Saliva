@@ -45,7 +45,7 @@ peptide_T <- select(peptide_T, Stress, everything())
 peptide_T$Stress <- factor(peptide_T$Stress)
 
 ######PCA#######
-pca1 <- prcomp(na.omit(peptide_T[5:2114]), scale=TRUE)
+pca1 <- prcomp(peptide_T[5:2114], scale=TRUE)
 summary(pca1)
 #PC1 - PC 14 are dimensions (not our columns)
 #And it is the Cumulative Proportion that shows us the percentage of the total variation
@@ -68,6 +68,11 @@ fviz_pca_ind(pca1,
 ###Stress
 fviz_pca_ind(pca1, 
              habillage = peptide_T[1:48, 1]) +
+  theme_minimal()
+
+###Nutrition
+fviz_pca_ind(pca1, 
+             habillage = peptide_T[1:48, 4]) +
   theme_minimal()
 
 ###Treatment Group

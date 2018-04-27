@@ -1,7 +1,7 @@
 ---
 title: "Salivary Proteomics in Sheep"
 author: "Jared Raynes"
-date: "18 April 2018"
+date: "27 April 2018"
 output: 
   html_document:
     keep_md: true
@@ -47,7 +47,7 @@ The data was provided in the form of two Microsoft Excel documents.
 1. "Copy of 20180413_DataSchool_Glycogen.xlsx"  
 2. "Copy of Data Matrix_Peptide Peak Area.xlsx"
 
-#### Initial investigation of excel 1
+#### Initial investigation of Excel 1
 
 ```{r sheep}
 excel_sheets("Data/Copy of 20180413_DataSchool_Glycogen.xlsx")
@@ -60,7 +60,7 @@ excel_sheets("Data/Copy of 20180413_DataSchool_Glycogen.xlsx")
 ####Inital look at data
 ```{r pH}
 pH <- read_xlsx("Data/Copy of 20180413_DataSchool_Glycogen.xlsx", sheet = "pH")
-head(pH)
+pH
 ```
 ####Tidying the data
 
@@ -76,7 +76,7 @@ pH_long$Treatment.Group <- factor(pH$Treatment.Group)
 pH_long$ID <- factor(pH$ID)
 pH_long$Feed <- factor(pH_long$Feed)
 pH_long$Stress <- factor(pH_long$Stress)
-head(pH_long)
+pH_long
 ```
 
 #### Initial visulisation of data
@@ -101,11 +101,12 @@ ggplot(pH_long, aes(x = Stress, y = pH, colour = Feed))+
 ```{r pH_modelling}
 lm.pH1 <- lm(pH ~ Stress*Feed + Muscle.type, data = pH_long)
 summary(lm.pH1)
+emmeans(lm.pH1, pairwise~Stress+Feed)
 plot(lm.pH1, which =1)
 ```
 
 #### Modelling Results
-1. Feeding regime had no influence on muscle pH.  
+1. Feeding regime only had a significant effect (P = 0.005) on the pH of the M.semitendinosus muscle and this only occurred when the animals were stressed.  
 2. Stress had a significant (P < 2e-16) impact on muscle pH.  
 3. The M.semitendinosus muscle had a significantly (P = 1.91e-12) higher pH compared to the M.longissimus.dorsi muscle. 
 4. None of the treatments resulted in 'dark cutting' of meat.
@@ -115,7 +116,7 @@ plot(lm.pH1, which =1)
 ####Inital look at data
 ```{r Glycogen}
 Glycogen <- read_xlsx("Data/Copy of 20180413_DataSchool_Glycogen.xlsx", sheet = "Glycogen")
-head(Glycogen)
+Glycogen
 ```
 ####Tidying the data
 
@@ -126,16 +127,15 @@ G2 <- Glycogen[6:10] #need to have identical names to use row_bind
 names(G2) <- c("Treatment group", "Brand", "Glycogen mg/g tissue", "Lactate mg/g", "Corrected glycogen")
 G2$`Treatment group` <- as.character(G2$`Treatment group`) 
 Glycogen_comb <- bind_rows(G1, G2) #combining the columns together
-#names(Glycogen_comb) <- c("Treatment.Group", "ID", "Glycogen mg/g tissue", "Lactate mg/g", "Corrected glycogen")
 Glycogen_comb <- mutate(Glycogen_comb, Feed = ifelse(`Treatment group` <= 2, TRUE, FALSE)) %>%  #added feed column
-  mutate(Stress = ifelse(`Treatment group` == 2|`Treatment group` == 4, TRUE, FALSE))
+  mutate(Stress = ifelse(`Treatment group` == 2|`Treatment group` == 4, TRUE, FALSE)) #added Stress column
 Glycogen_long <- Glycogen_comb %>% 
   gather(key = "Measure", value = "mg/g", "Glycogen mg/g tissue", "Lactate mg/g", "Corrected glycogen")
 names(Glycogen_long) <- c("Treatment.Group", "ID", "Feed", "Stress", "Measure", "mg/g")
 Glycogen_long$Treatment.Group <- factor(Glycogen_long$Treatment.Group)
 Glycogen_long$ID <- factor(Glycogen_long$ID)
 Glycogen_sel <- filter(Glycogen_long, Measure == "Corrected glycogen")
-head(Glycogen_long)
+Glycogen_long
 ```
 
 #### Initial visulisation of data
@@ -173,7 +173,7 @@ plot(lm.Gly1, which =1)
 
 ```{r Glycogen_bios}
 Glycogen_biopsy <- read_xlsx("Data/Copy of 20180413_DataSchool_Glycogen.xlsx", sheet = "Glycogen biopsy")
-head(Glycogen_biopsy)
+Glycogen_biopsy
 ```
 
 ####Tidying the data
@@ -189,7 +189,7 @@ Glycogen_biopsy_long$Treatment.Group <- factor(Glycogen_biopsy_long$Treatment.Gr
 Glycogen_biopsy_long$ID <- factor(Glycogen_biopsy_long$ID)
 Glycogen_biopsy_long$Measure <- factor(Glycogen_biopsy_long$Measure)
 Glycogen_biopsy_sel <- filter(Glycogen_biopsy_long, Measure == "Corrected Glycogen")
-head(Glycogen_biopsy_long)
+Glycogen_biopsy_long
 ```
 
 #### Initial visulisation of data
@@ -207,7 +207,7 @@ ggplot(Glycogen_biopsy_sel, aes(x = Treatment.Group, y = `mg/g`, colour = Measur
 ```{r Glycogen_Biops_modelling}
 lm.Glybiops1 <- lm(`mg/g` ~ Treatment.Group, data = Glycogen_biopsy_sel)
 summary(lm.Glybiops1)
-plot(lm.Gly1, which =1)
+plot(lm.Glybiops1, which =1)
 ```
 
 #### Modelling Results
@@ -218,7 +218,7 @@ plot(lm.Gly1, which =1)
 ####Inital look at data
 ```{r Weight}
 Weight_gain <- read_xlsx("Data/Copy of 20180413_DataSchool_Glycogen.xlsx", sheet = "Weight gain")
-head(Weight_gain)
+Weight_gain
 ```
 
 ####Tidying the data
@@ -237,7 +237,7 @@ Weight_gain_long$Week <- factor(Weight_gain_long$Week)
 Weight_gain_long$Feed <- factor(Weight_gain_long$Feed)
 Weight_gain_long$Stress <- factor(Weight_gain_long$Stress)
 Weight_gain_long$Feed <- relevel(Weight_gain_long$Feed, ref= 'TRUE')
-head(Weight_gain_long)
+Weight_gain_long
 ```
 
 #### Initial visulisation of data
@@ -258,7 +258,7 @@ ggplot(Weight_gain_long, aes(x = Week, y = Weight.kg, colour = Stress))+
 lm.Weight1 <- lm(Weight.kg ~ Week + Stress*Feed, data = Weight_gain_long)
 summary(lm.Weight1)
 #emmeans(lm.Weight1, pairwise ~ Week + Stress*Feed)
-plot(lm.Gly1, which =1)
+plot(lm.Weight1, which =1)
 ```
 
 #### Modelling Results
@@ -274,7 +274,7 @@ plot(lm.Gly1, which =1)
 
 ```{r peptide}
 peptide <- read_xlsx("Data/Copy of Data Matrix_Peptide Peak Area.xlsx")
-glimpse(peptide)
+peptide
 ```
 
 ####Tidy the data
@@ -294,10 +294,54 @@ peptide_T <- mutate(peptide_T, Stress = ifelse(Treatment.Group == 2|Treatment.Gr
 peptide_T <- select(peptide_T, Stress, everything())
 peptide_T$Stress <- factor(peptide_T$Stress)
 ```
-
+ 
 ####Principle Component Analysis of the Data
 
 ```{r PCA}
-pca1 <- prcomp(na.omit(peptide_T[5:2114]), scale=TRUE)
-summary(pca1)
+pca_pep <- prcomp(peptide_T[5:2114], scale=TRUE)
 ```
+###Plotting the PCA and Colouring by Qualitative Variables
+
+```{r PCA_plots, echo=FALSE}
+fviz_pca_ind(pca_pep, 
+             habillage = peptide_T[1:48, 3]) +
+  labs(title ="PCA Coloured by Groups", x = "Dim1 (30.9%)", y = "Dim2 (10 %)") +
+  theme_minimal()
+
+###Nutrition
+fviz_pca_ind(pca_pep, 
+             habillage = peptide_T[1:48, 1]) +
+  labs(title ="PCA Coloured by Stress", x = "Dim1 (30.9%)", y = "Dim2 (10 %)") +
+  theme_minimal()
+
+###Treatment Group
+fviz_pca_ind(pca_pep, 
+             habillage = peptide_T[1:48, 4]) +
+    labs(title ="PCA Coloured by Nutrition", x = "Dim1 (30.9%)", y = "Dim2 (10 %)") +
+  theme_minimal()
+```
+
+####From the PCA plots, stress does not influence the abundance of individual peptides from the saliva, as expected, because the saliva was taken before the stress event.  Nutrition is having an effect on saliva peptide abundance though.  
+
+###Plotting with the Nutrition Groups Coloured and with a 95% Confidence Ellipse
+
+```{r PCA_plot2, echo=FALSE}
+fviz_pca_ind(pca_pep, 
+             habillage = peptide_T[1:48, 4], addEllipses = TRUE, 
+             ellipse.level = 0.95, 
+             title = "Saliva Peptide Analysis",
+             repel = TRUE)+
+  theme_minimal()
+
+fviz_pca_var(pca_pep, select.var = list(contrib = 5), geom = c("point", "text"), repel = TRUE)
+
+```
+
+###The nutrition groups separate relatively well.  
+###The top 5 peptides contributing the most influence on the PCA are:   
+GTLDPVEK +2  
+DAGTIAGLNVLR +2  
+NSLESYAFNMK +2  
+FIIPNIVK +2  
+GNPTVEDLFTAK +2
+
