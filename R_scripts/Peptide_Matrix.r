@@ -52,6 +52,15 @@ summary(pca1)
 #(ie, important dimenions are where the portion of variance is a significant value,
 #     different schools of thought (SD < 1, Portion of Vaiance < 0.1 or Cum P <- 75%))
 
+
+### get column mean and remove from each
+### column of data then do log and pca
+pca2 <- prcomp(log(peptide_T[5:2114]+1), scale=TRUE)
+summary(pca2)
+
+pca3 <- peptide_T %>% 
+  group_by()
+
 ###factoextra
 library(factoextra)
 
@@ -60,7 +69,7 @@ head(quali.sup)
 
 
 fviz_eig(pca1)
-
+fviz_eig(pca2)
 fviz_pca_ind(pca1,
              col.ind = "cos2", # Color by the quality of representation
              gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
@@ -84,7 +93,7 @@ fviz_pca_ind(pca1,
 fviz_pca_ind(pca1, 
              habillage = peptide_T[1:48, 4], addEllipses = TRUE, 
              ellipse.level = 0.68, 
-             title = "Saliva Peptide Analysis",
+             title ="Saliva Peptide Analysis",
              repel = TRUE)+
   theme_minimal()
 
@@ -120,5 +129,13 @@ pep.PCA2 <- PCA(peptide_T[,5:2118], scale.unit=TRUE, ncp=5, quali.sup=1, graph=T
 
 plot.PCA(pep.PCA2, axes=c(1, 2), choix="var", habillage=13)              
 
+##trying to plot all components
 
+library(lattice)
+library(mclust)
+dat <- peptide_T[5:2114]
+dat.pca <- prcomp(peptide_T[5:2114])
+dat.em <- mclustBIC(dat) 
+splom(as.data.frame(dat.pca$x), 
+      col=summary(dat.em,data=dat)$classification, cex=2,pch='*')
 

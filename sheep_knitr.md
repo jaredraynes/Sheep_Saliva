@@ -34,7 +34,7 @@ Note: the stress event occurred after the saliva was taken and as such should no
 
 The sheep were assessed for glycogen content and the pH of the meat was measured 24h after slaughter.
 
-The pH was assessed after 24 h at 4 degress (final pH). A final pH > 5.7 is considered a cause for downgrading in Meat Standards Australia, and seen as indicative of ‘dark cutting’. Note that pH in the leg muscle and in the back muscle are quite different. The leg muscle (M. semitendinosus) is particularly sensitive to glycogen depletion.
+The pH was assessed after 24 h at 4 degrees (final pH). A final pH > 5.7 is considered a cause for downgrading in Meat Standards Australia, and seen as indicative of ‘dark cutting’. Note that pH in the leg muscle and in the back muscle are quite different. The leg muscle (M. semitendinosus) is particularly sensitive to glycogen depletion.
 
 ### Data provided
 
@@ -687,8 +687,8 @@ plot(lm_cort, which =1)
 #### Modelling Results
 
 1. At time point 1, before the stress event, feed made no difference to the concentration of cortisol, but the non-stressed groups (1 & 3), contained a significantly (P = 0.003) higher cortisol concentration. This is strange because no stress event had occurred.  
-2. There were no differences between treatment groups at time point after the stress event, therefore feed and stress makes no differnece to cortisol levels.  
-3. Cortisol levels were significantly differnet at timepoint 3, post killing for all treatment groups.  
+2. There were no differences between treatment groups at time point after the stress event, therefore feed and stress makes no difference to cortisol levels.  
+3. Cortisol levels were significantly different at time point 3, post killing for all treatment groups.  
 4. Restricted feed significantly (P = 0.004) lowered cortisol levels post killing.  
 5. Stress significantly (P = 0.006) increased cortisol levels post killing.
 
