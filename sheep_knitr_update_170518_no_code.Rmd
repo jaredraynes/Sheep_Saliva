@@ -1,0 +1,189 @@
+---
+title: "Sheep Saliva MS"
+author: "Jared Raynes"
+date: "17 May 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning=FALSE)
+library(tidyverse)
+library(readxl)
+library(FactoMineR)
+library(factoextra)
+library(ggrepel)
+```
+
+###Data Wrangling for pH, Glycogen and Peptide data
+
+```{r data wrangling, echo=FALSE}
+
+#pH
+pH <- read_xlsx("Data/Copy of 20180413_DataSchool_Glycogen.xlsx", sheet = "pH")
+pH$Brand[13] = 64
+pH <- pH[1:4]
+names(pH) <- c("Treatment.Group", "ID", "M.semitendinosus", "M.longissimus.dorsi")
+pH <- mutate(pH, Feed = ifelse(Treatment.Group <= 2, TRUE, FALSE)) %>%  #added feed column
+  mutate(Stress = ifelse(Treatment.Group == 2|Treatment.Group == 4, TRUE, FALSE))
+pH <- pH[-51,] ##There were two measurements for brand 51 so removed one as redundent for pH measurement
+
+#Peptide
+peptide <- read_xlsx("Data/Copy of Data Matrix_Peptide Peak Area.xlsx")
+peptide_T <- t(peptide) #transpose
+peptide_T <- rownames_to_column(data.frame(peptide_T), 'ID')
+peptide_T$ID[1] <- "ID"
+peptide_T[] <- lapply(peptide_T, as.character)
+peptide_T$X2[1] <- "Nutrition"
+peptide_T$X1[1] <- "Treatment.Group"
+colnames(peptide_T) <- peptide_T[1, ]
+peptide_T <- peptide_T[-1 ,]
+peptide_T$ID <- as.numeric(peptide_T$ID)
+
+##Join the pH data and the peptide
+peptide_pH <- pH %>% 
+  select(ID, M.semitendinosus) %>% 
+  right_join(peptide_T, by = "ID") %>% 
+###add columns for stress and dark cutting
+  mutate(Stress = ifelse(Treatment.Group == 2|Treatment.Group == 4, TRUE, FALSE)) %>% 
+  mutate(Darkcutting = ifelse(M.semitendinosus >= 5.7, TRUE, FALSE)) %>% 
+  select(Stress, everything()) %>% 
+  select(Darkcutting, everything()) 
+peptide_pH[7:2120] <- lapply(peptide_pH[7:2120], as.numeric)
+##make the rest factors
+peptide_pH[c(1,2,3,5,6)] <- lapply(peptide_pH[c(1,2,3,5,6)], as.factor)
+
+#Glycogen
+Glycogen <- read_xlsx("Data/Copy of 20180413_DataSchool_Glycogen.xlsx", sheet = "Glycogen")
+Glycogen <- Glycogen[-c(31),] ## remove error message
+G1 <- Glycogen[1:5] #the treatment groups are in different columns this time
+G2 <- Glycogen[6:10] #need to have identical names to use row_bind
+names(G2) <- c("Treatment group", "Brand", "Glycogen mg/g tissue", "Lactate mg/g", "Corrected glycogen")
+G2$`Treatment group` <- as.character(G2$`Treatment group`) 
+Glycogen_comb <- bind_rows(G1, G2) #combining the columns together
+Glycogen_comb <- mutate(Glycogen_comb, Feed = ifelse(`Treatment group` <= 2, TRUE, FALSE)) %>%  #added feed column
+  mutate(Stress = ifelse(`Treatment group` == 2|`Treatment group` == 4, TRUE, FALSE)) #added Stress column
+names(Glycogen_comb) <- c("Treatment.Group", "ID", "Glycogen mg/g tissue", "Lactate mg/g", "Corrected glycogen", "Feed", "Stress")
+
+#Joining pH and Glycogen
+Gly_pH <- pH %>% 
+  select(ID, M.semitendinosus) %>% 
+  right_join(Glycogen_comb, by = "ID")
+
+```
+
+### Which Sheep suffered from "dark cutting" (pH >5.7)?
+```{r Dark cutters, echo=FALSE}
+filt_pH <- filter(pH, `M.semitendinosus` >= 5.7)
+filt_pH[,c(2,3)]
+```
+
+###pH vs Glycogen Corrlation
+
+```{r pH and Glygo, echo=FALSE}
+#Modelling
+fit1 <- lm(`Corrected glycogen` ~ `M.semitendinosus`, data = Gly_pH)
+summary(fit1)
+```
+###Modelling results:
+An increase in pH is highly correlated (P = 1.075e-10) with a decrease in glycogen.
+
+```{r pH and Glygo plot, echo=FALSE}
+#PLotting
+
+ggplot(data = Gly_pH, aes(x = `M.semitendinosus`
+                          , y = log(`Corrected glycogen`))) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(title ="Glycogen VS pH with Linear Model Fit", 
+       x = "pH From M.semitendionsus Muscle", 
+       y = "log(Corrected glycogen)")
+```
+
+## Updated Principle Component Analysis Outputs for Peptides
+
+```{r PCAs, echo=FALSE}
+pca1 <- prcomp(peptide_pH[7:2120], scale=TRUE)
+
+###Stress
+fviz_pca_ind(pca1, 
+             habillage = peptide_pH$Stress, 
+             geom = "point", 
+             pointsize = 3, 
+             pointshape = 19, 
+             legend.title = "Stress", 
+             legend.size = 4 
+             ) +
+  labs(title ="PCA Coloured by Stress", 
+       x = "Dimension 1 (30.8%)", 
+       y = "Dimension 2 (10%)") +
+  geom_label_repel(aes(label = peptide_pH$ID),
+           box.padding   = 0.10, 
+           point.padding = 0.5,
+           label.padding = 0.125,
+           segment.color = 'grey50',
+           size = 3.5)
+
+###Nutrition
+fviz_pca_ind(pca1, 
+             habillage = peptide_pH$Nutrition, 
+             geom = "point", 
+             pointsize = 3, 
+             pointshape = 19, 
+             legend.title = "Nutrition", 
+             legend.size = 4 
+             ) +
+  labs(title ="PCA Coloured by Nutrition", 
+       x = "Dimension 1 (30.8%)", 
+       y = "Dimension 2 (10%)") +
+  geom_label_repel(aes(label = peptide_pH$ID),
+           box.padding   = 0.10, 
+           point.padding = 0.5,
+           label.padding = 0.125,
+           segment.color = 'grey50',
+           size = 3.5)
+
+###Treatment Group
+fviz_pca_ind(pca1, 
+             habillage = peptide_pH$Treatment.Group, 
+             geom = "point", 
+             pointsize = 3, 
+             pointshape = 19, 
+             legend.title = "Treatment Group", 
+             legend.size = 4 
+             ) +
+  labs(title ="PCA Coloured by Treatment Group", 
+       x = "Dimension 1 (30.8%)", 
+       y = "Dimension 2 (10%)") +
+  geom_label_repel(aes(label = peptide_pH$ID),
+           box.padding   = 0.10, 
+           point.padding = 0.5,
+           label.padding = 0.125,
+           segment.color = 'grey50',
+           size = 3.5)
+
+###Darkcutting
+fviz_pca_ind(pca1, 
+             habillage = peptide_pH$Darkcutting, 
+             geom = "point", 
+             pointsize = 3, 
+             pointshape = 19, 
+             legend.title = "Darkcutting", 
+             legend.size = 4 
+             ) +
+  labs(title ="PCA Coloured by Darkcutting", 
+       x = "Dimension 1 (30.8%)", 
+       y = "Dimension 2 (10%)") +
+  geom_label_repel(aes(label = peptide_pH$ID),
+           box.padding   = 0.10, 
+           point.padding = 0.5,
+           label.padding = 0.125,
+           segment.color = 'grey50',
+           size = 3.5)
+```
+
+## What are the top 50 peptides contributing the most to PCA1 and PCA2?
+
+```{r PCA_peptide_contri, echo=FALSE}
+facto_summarize(pca1, "var", axes = 1:2, select =  list(contrib =  50))[,c(-1,-2,-3,-4)]
+```
+
